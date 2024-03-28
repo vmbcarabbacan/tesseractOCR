@@ -6,6 +6,7 @@ namespace Vmbcarabbacan\TeseractOcr;
 use thiagoalessio\TesseractOCR\TesseractOCR as TesOCR;
 use Spatie\PdfToImage\Pdf;
 use Vmbcarabbacan\TeseractOcr\ExtractEmirateId;
+use Imagick;
 
 class TesseractOcr {
     
@@ -19,7 +20,8 @@ class TesseractOcr {
 
     public function generateFile() {
         if(in_array(strtolower($this->extension), [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {
-            $newImage = $this->createImageInGrayScale($this->imagePath);
+            $processImage = $this->processImage($this->imagePath);
+            $newImage = $this->createImageInGrayScale($processImage);
             $data = $this->runImageOCR($newImage);
         } else if(strtolower($this->extension) == 'pdf') {
             $data = $this->runPdfOCR($this->imagePath);
@@ -37,7 +39,6 @@ class TesseractOcr {
         }
             
     }
-
     
     public function setImage($imagePath) :void {
         $this->imagePath = $imagePath;
@@ -122,9 +123,40 @@ class TesseractOcr {
             imagepng($grayscaleImage, $path);
 
             // Clean up resources
-            // imagedestroy($originalImage);
+            imagedestroy($originalImage);
             // imagedestroy($grayscaleImage);
             return $path;
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    private function processImage($imagePath) {
+        try {
+            $imagick = new Imagick($imagePath);
+
+            // Convert the image to grayscale
+            $imagick->transformImageColorspace(Imagick::COLORSPACE_GRAY);
+
+            // Apply a Gaussian blur for noise removal
+            $imagick->gaussianBlurImage(1, 0.5);
+
+            // Binarize the image using Otsu's method
+            $imagick->thresholdImage(0); // Automatic thresholding using Otsu's method
+
+            // Correct image skew
+            $imagick->deskewImage(40); // Adjust the threshold angle as needed
+
+            // Save the processed image
+            
+            $outputImagePath = $this->basePath.'/process-'.$this->baseName;
+            $imagick->writeImage($outputImagePath);
+
+            // Destroy the Imagick object to free up memory
+            $imagick->clear();
+            $imagick->destroy();
+
+            return $outputImagePath;
         } catch (\Exception $e) {
             return $e->getMessage();
         }
