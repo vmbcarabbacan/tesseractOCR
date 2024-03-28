@@ -5,3 +5,25 @@ extension=imagick
 Before you can use Imagick in PHP, you need to ensure that the Imagick extension is installed and enabled on your server. If Imagick is not already installed, you can typically install it using package managers like apt (for Debian-based systems) or yum (for CentOS/RHEL-based systems). For example, on Ubuntu, you can install Imagick using the following command:
 
 sudo apt-get install php-imagick
+
+composer .json 
+"require-dev": {
+    "vmbcarabbacan/teseract-ocr": "dev-master"
+}
+"repositories": [{
+        "type": "path",
+        "url": "../ocr"
+
+    }],
+
+
+tesseract --list-langs
+
+    how to install tesseract on windows
+    https://github.com/UB-Mannheim/tesseract/wiki
+    set TESSDATA_PREFIX=C:\Program Files\Tesseract-OCR\tessdata
+
+    linux
+    sudo apt-get install tesseract-ocr
+    sudo apt-get install -y tesseract-ocr-script-arab
+    export TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata

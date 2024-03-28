@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e9c28a92efb4c2df630a437140867b6",
+    "content-hash": "4f05a073a64b94a29746ebba78efdf8d",
     "packages": [
         {
             "name": "spatie/pdf-to-image",
-            "version": "dev-main",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/pdf-to-image.git",
-                "reference": "24b74b8ee5fa767be85e515bd8e8f3081092c645"
+                "reference": "7c68cc95c0a5e63d712b705ff55459071c2a7b54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/pdf-to-image/zipball/24b74b8ee5fa767be85e515bd8e8f3081092c645",
-                "reference": "24b74b8ee5fa767be85e515bd8e8f3081092c645",
+                "url": "https://api.github.com/repos/spatie/pdf-to-image/zipball/7c68cc95c0a5e63d712b705ff55459071c2a7b54",
+                "reference": "7c68cc95c0a5e63d712b705ff55459071c2a7b54",
                 "shasum": ""
             },
             "require": {
@@ -27,7 +27,6 @@
             "require-dev": {
                 "pestphp/pest": "^1.21"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -57,7 +56,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/pdf-to-image/issues",
-                "source": "https://github.com/spatie/pdf-to-image/tree/main"
+                "source": "https://github.com/spatie/pdf-to-image/tree/2.3.0"
             },
             "funding": [
                 {
@@ -65,29 +64,28 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-03-07T09:45:36+00:00"
+            "time": "2024-03-07T09:42:07+00:00"
         },
         {
             "name": "thiagoalessio/tesseract_ocr",
-            "version": "dev-main",
+            "version": "2.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thiagoalessio/tesseract-ocr-for-php.git",
-                "reference": "f72e909d7fc10948d8edce6a0dc904fc8c7a5809"
+                "reference": "232a8cb9d571992f9bd1e263f2f6909cf6c173a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thiagoalessio/tesseract-ocr-for-php/zipball/f72e909d7fc10948d8edce6a0dc904fc8c7a5809",
-                "reference": "f72e909d7fc10948d8edce6a0dc904fc8c7a5809",
+                "url": "https://api.github.com/repos/thiagoalessio/tesseract-ocr-for-php/zipball/232a8cb9d571992f9bd1e263f2f6909cf6c173a1",
+                "reference": "232a8cb9d571992f9bd1e263f2f6909cf6c173a1",
                 "shasum": ""
             },
             "require": {
-                "php": "^5.5 || ^7.0 || ^8.0"
+                "php": "^5.3 || ^7.0 || ^8.0"
             },
             "require-dev": {
                 "phpunit/php-code-coverage": "^2.2.4 || ^9.0.0"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -115,18 +113,19 @@
                 "issues": "https://github.com/thiagoalessio/tesseract-ocr-for-php/issues",
                 "source": "https://github.com/thiagoalessio/tesseract-ocr-for-php"
             },
-            "time": "2023-10-05T21:50:52+00:00"
+            "time": "2023-10-05T21:14:48+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {
-        "thiagoalessio/tesseract_ocr": 20
-    },
+    "minimum-stability": "stable",
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": "^7.2|^8.0",
+        "ext-imagick": "*"
+    },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }

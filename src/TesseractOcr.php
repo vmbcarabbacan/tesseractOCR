@@ -1,6 +1,4 @@
 <?php
-require 'vendor/autoload.php';
-
 namespace Vmbcarabbacan\TeseractOcr;
 
 use thiagoalessio\TesseractOCR\TesseractOCR as TesOCR;
@@ -10,7 +8,7 @@ use Imagick;
 
 class TesseractOcr {
     
-    private $imagePath, $basePath, $baseName, $extension;
+    private $imagePath, $basePath, $baseName, $extension, $lang = null;
     private $path, $is_emirate_id = true, $is_policy = false;
 
     public function __construct(String $path = null)
@@ -18,15 +16,19 @@ class TesseractOcr {
         $this->path = $path;
     }
 
+    public function test() {
+        return 'this is vmbcarabbacan tesseract';
+    }
+
     public function generateFile() {
-        if(in_array(strtolower($this->extension), [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {
+        if(in_array(strtolower($this->extension), ['jpg', 'jpeg', 'png'])) {
             $processImage = $this->processImage($this->imagePath);
-            $newImage = $this->createImageInGrayScale($processImage);
+            $newImage = $this->createImageInGrayScale($this->imagePath);
             $data = $this->runImageOCR($newImage);
         } else if(strtolower($this->extension) == 'pdf') {
             $data = $this->runPdfOCR($this->imagePath);
         } else {
-            return 'Unable to read the file ' . $this->baseName;
+            return 'Unable to read the file ' . $this->baseName . '-' .$this->extension;
         }
 
         if($this->is_emirate_id) {
@@ -40,29 +42,41 @@ class TesseractOcr {
             
     }
     
-    public function setImage($imagePath) :void {
+    public function setImage($imagePath){
         $this->imagePath = $imagePath;
         $this->extension = pathinfo($imagePath, PATHINFO_EXTENSION);
         $this->basePath = dirname($imagePath);
         $this->baseName = basename($imagePath);
+
+        return $this;
     }
 
-    public function emirateId() :void {
+    public function lang($lang) {
+        $this->lang = $lang;
+
+        return $this;
+    }
+
+    public function emirateId() {
         $this->is_emirate_id = true;
         $this->is_policy = false;
+        
+        return $this;
     }
 
-    public function policy() :void {
+    public function policy() {
         $this->is_emirate_id = false;
         $this->is_policy = true;
+
+        return $this;
     }
 
     private function runImageOCR($image) {
         try {
             $ocr = new TesOCR($image);
             if(!is_null($this->path)) $ocr->executable($this->path);
-            $ocr->lang('en');
-            $data = $ocr->run();
+            if(!is_null($this->lang)) $ocr->lang($this->lang);
+            $data = $ocr->dpi(300)->run();
 
             return $data;
         } catch(\Exception $e) {
@@ -79,8 +93,9 @@ class TesseractOcr {
 
             foreach ($imagePaths as $imagePath) {
                 $ocr = new TesOCR($imagePath);
-                $ocr->lang('eng'); // Set language (optional)
-                $extractedText = $ocr->run();
+                if(!is_null($this->path)) $ocr->executable($this->path);
+                if(!is_null($this->lang)) $ocr->lang($this->lang);
+                $extractedText = $ocr->dpi(300)->run();
         
                 // Output the extracted text
                 return $extractedText;
@@ -92,9 +107,9 @@ class TesseractOcr {
 
     private function createImageInGrayScale($originalImage) {
         try {
-            if($this->extension == IMAGETYPE_JPEG)
+            if(in_array($this->extension, ['jpg', 'jpeg']))
                 $originalImage = imagecreatefromjpeg($originalImage);
-            else if ($this->extension == IMAGETYPE_PNG)
+            else if ($this->extension == 'png')
                 $originalImage = imagecreatefrompng($originalImage);
             else return false;
 
@@ -109,12 +124,13 @@ class TesseractOcr {
             for ($x = 0; $x < $width; $x++) {
                 for ($y = 0; $y < $height; $y++) {
                     $rgb = imagecolorat($originalImage, $x, $y);
+                    $alpha = ($rgb >> 24) & 0xFF; // Extract alpha channel
                     $r = ($rgb >> 16) & 0xFF;
                     $g = ($rgb >> 8) & 0xFF;
                     $b = $rgb & 0xFF;
                     $gray = round(0.299 * $r + 0.587 * $g + 0.114 * $b);
-                    $grayColor = imagecolorallocate($grayscaleImage, $gray, $gray, $gray);
-                    imagesetpixel($grayscaleImage, $x, $y, $grayColor);
+                    $bwColor = imagecolorallocatealpha($grayscaleImage, $gray, $gray, $gray, $alpha); // Preserve alpha channel
+                    imagesetpixel($grayscaleImage, $x, $y, $bwColor);
                 }
             }
 
@@ -123,7 +139,7 @@ class TesseractOcr {
             imagepng($grayscaleImage, $path);
 
             // Clean up resources
-            imagedestroy($originalImage);
+            // imagedestroy($originalImage);
             // imagedestroy($grayscaleImage);
             return $path;
         } catch (\Exception $e) {
@@ -136,16 +152,17 @@ class TesseractOcr {
             $imagick = new Imagick($imagePath);
 
             // Convert the image to grayscale
-            $imagick->transformImageColorspace(Imagick::COLORSPACE_GRAY);
+            // $imagick->modulateImage(100,0,100);
+            // $imagick->transformImageColorspace(Imagick::COLORSPACE_GRAY);
 
             // Apply a Gaussian blur for noise removal
             $imagick->gaussianBlurImage(1, 0.5);
 
             // Binarize the image using Otsu's method
-            $imagick->thresholdImage(0); // Automatic thresholding using Otsu's method
+            // $imagick->thresholdImage(0); // Automatic thresholding using Otsu's method
 
             // Correct image skew
-            $imagick->deskewImage(40); // Adjust the threshold angle as needed
+            // $imagick->deskewImage(40); // Adjust the threshold angle as needed
 
             // Save the processed image
             

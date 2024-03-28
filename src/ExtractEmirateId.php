@@ -8,7 +8,8 @@ class ExtractEmirateId {
         return [
             'emirates_id' => $this->id($string),
             'name' => $this->name($string),
-            'dob' => $this->dob($string)
+            'dob' => $this->dob($string),
+            'string' => $string
         ];
     }
 
@@ -18,7 +19,7 @@ class ExtractEmirateId {
     }
 
     private function name($string) {
-        $pattern = "/Name: (.*?) Date/";
+        $pattern = "/Name: (.*?) >)/";
         $decodedString = htmlspecialchars_decode($string);
         $cleanString = str_replace(array("\r", "\n"), '', $decodedString);
         return $this->matches($cleanString, $pattern);
