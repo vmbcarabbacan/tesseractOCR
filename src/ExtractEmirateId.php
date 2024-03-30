@@ -19,10 +19,10 @@ class ExtractEmirateId {
     }
 
     private function name($string) {
-        $pattern = "/Name: (.*?) >)/";
+        $pattern = "/Name:\s*(.*?)\s*Date/";
         $decodedString = htmlspecialchars_decode($string);
         $cleanString = str_replace(array("\r", "\n"), '', $decodedString);
-        return $this->matches($cleanString, $pattern);
+        return $this->matches($cleanString, $pattern, 1);
     }
 
     private function dob($string) {
@@ -30,12 +30,16 @@ class ExtractEmirateId {
         return $this->matches($string, $pattern);
     }
 
-    private function matches($string, $pattern) {
-        if (preg_match($pattern, $string, $matches)) {
-            $extracted_text = $matches[0];
-            return $extracted_text;
-        } else {
-            return null;
+    private function matches($string, $pattern, $index = 0) {
+        try{
+            if (preg_match($pattern, $string, $matches)) {
+                $extracted_text = $matches[$index];
+                return $extracted_text;
+            } else {
+                return null;
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
     }
 }
