@@ -15,7 +15,7 @@
             "name": "Vincent Mark Bondoc Carabbacan"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "require": {
         "php": "^7.2|^8.0",
         "ext-imagick": "*",
