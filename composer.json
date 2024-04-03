@@ -1,7 +1,7 @@
 {
     "name": "vmbcarabbacan/teseract-ocr",
     "description": "Extract text image and pdf file",
-    "version": "1.0.1.0",
+    "version": "1.0.2.0",
     "type": "library",
     "keywords": ["Tesseract", "OCR", "text recognition", "eid recognition"],
     "license": "MIT",
@@ -19,8 +19,8 @@
     "require": {
         "php": "^7.2|^8.0",
         "ext-imagick": "*",
-        "symfony/process": "^6.0",
         "spatie/pdf-to-image": "^2.3",
+        "symfony/process": "5.4.*",
         "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "config": {

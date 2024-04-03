@@ -12,6 +12,7 @@ class TesseractOcr {
     
     private $imagePath, $basePath, $baseName, $extension, $lang = null;
     private $path, $is_emirate_id = true, $is_policy = false;
+    private $gs = 'gs';
 
     public function __construct(String $path = null)
     {
@@ -62,6 +63,12 @@ class TesseractOcr {
         return $this;
     }
 
+    public function setGs($gs) {
+        $this->gs = $gs;
+
+        return $this;
+    }
+
     public function emirateId() {
         $this->is_emirate_id = true;
         $this->is_policy = false;
@@ -104,7 +111,7 @@ class TesseractOcr {
     private function pdfToPng($image) {
         try {
             // Use Ghostscript to decrypt PDF and convert to images
-            $process = new Process(['gs', '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $this->basePath . 'page%d.png', $image]);
+            $process = new Process([$this->gs, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $this->basePath . 'page%d.png', $image]);
             $process->run();
 
             // Check if Ghostscript command was successful
