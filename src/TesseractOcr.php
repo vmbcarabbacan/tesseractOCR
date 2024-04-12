@@ -36,6 +36,8 @@ class TesseractOcr extends ExtractEmirateId {
         }
 
         if($this->isPolicy) {
+            if(!$data) 
+                $data = $this->pdfToPng($this->imagePath);
             return $this->getPolicy($data);
         }
             
@@ -125,7 +127,8 @@ class TesseractOcr extends ExtractEmirateId {
 
     private function pdfToPng($image) {
         try {
-            $outputFile = $this->basePath . 'pdtToPng/';
+            $outputFile = $this->basePath . '/pdtToPng/';
+            $this->createFolder($outputFile);
             // Use Ghostscript to decrypt PDF and convert to images
             $process = new Process([$this->gs, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $outputFile . 'page%d.png', $image]);
             $process->run();
@@ -201,5 +204,17 @@ class TesseractOcr extends ExtractEmirateId {
             }
         }
         rmdir($path);
+    }
+
+    private function createFolder($folderPath) {
+        if (!is_dir($folderPath)) {
+            // Create the folder if it doesn't exist
+            if (!mkdir($folderPath, 0755, true)) { // 0755 is the default permissions, true creates nested directories if needed
+                // 
+            }
+        }
+
+        return $folderPath;
+        
     }
 }

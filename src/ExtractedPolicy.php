@@ -25,6 +25,7 @@ class ExtractedPolicy {
             "/\b$an{2}\/$an{5}\/$an{2}\/$an\b/",
             "/\b$an{2}\/$an{2}\/$an{4}\/$an{2}\/$an{5}\b/",
             "/\b$an{2}\/$an{4}\/$an{3}\/$an{3}\b/",
+            "/\b$an{2}\/$an{4}\/$an{2}\/$an{4}\/$an{4}\b/",
             "/\b$an{2}\/$an{3}\/$an{3}\/$an{4}\/$an{5}\b/",
             "/\b$an\/$an{4}\/$an{2}\/$an{4}\/$an{6}\b/",
             "/\b$an\/$an{2}\/$an{4}\/$an{4}\/$an{4}\b/",
@@ -40,6 +41,7 @@ class ExtractedPolicy {
             "/\b$an-$an{4}-$an{2}-$an{2}-$an{6}\b/",
             "/\b$an{2}-$an{4}-$an{6}\b/",
             "/\b$an{2}\/$an{6}\b/",
+            "/\b$an{12}\b/",
             "/\b$number{22}\b/",
             "/\b$number{16}\b/",
             "/\b$number{9}\b/",
@@ -97,7 +99,10 @@ class ExtractedPolicy {
             "/\\n(\d{2}\s\w+\s\d{4})\s+\d{6}\s+-\s+(\d{2}\s+\w+\s+\d{4})\s+\d{6}/",
             "/\\n(\d{2}-\w+-\d{4})\\n\\n\\n\\n\s+\\n\\nPolicy Expiry Date\\n\\n\s+(\d{2}-\w+-\d{4})/",
             "/\\n(\d{2}-\w+-\d{4})\\n\\n\\n\\n\s+\\n\\nPolicy Inception Date\\n\\n\\n\\nPolicy Expiry Date\\n\\n\s+(\d{2}-\w+-\d{4})/",
-            "/\\n(\d{2}\/\d{2}\/\d{4})\\n+(\d{2}\/\d{2}\/\d{4})/"
+            "/\\n(\d{2}\/\d{2}\/\d{4})\\n+(\d{2}\/\d{2}\/\d{4})/",
+            "/\\n(\d{2}[.]?\d{2}[.]?\d{4})\s+\w+\s+(\d{2}[.]?\d{2}[.]?\d{4})/",
+            "/\w+\s+(\d{2}\/\d{2}\/\d{4})\s+\w+\s+\w+\s+(\d{2}\/\d{2}\/\d{4})/",
+            "/(\d{2}\/\d{2}\/\d{4})\s+-\s+\w+\s+-\s+(\d{2}\/\d{2}\/\d{4})/"
         );
 
         foreach($otherPatterns as $pattern){
@@ -105,12 +110,14 @@ class ExtractedPolicy {
             if($others)
                 return $others;
         }
+
     }
 
     private function getOtherDates($string, $pattern, $type) {
         try {
             if (preg_match(strtolower($pattern), strtolower($string), $matches)) {
                 $index = $type == 'from' ? 1 : 2;
+                // return $matches;
                 return $this->correctDateFormat($matches[$index]);
             } 
         } catch (\Exception $e) {
@@ -130,7 +137,7 @@ class ExtractedPolicy {
 
     private function correctDateFormat($date) {
         try {
-            $formats = array('d-M-y', 'd/m/y', 'd/m/Y', 'd/m/y H:i', 'd/m/Y H:i', 'd/m/y Hi');
+            $formats = array('d-M-y', 'd/m/y', 'd/m/Y', 'dmY', 'd/m/y H:i', 'd/m/Y H:i', 'd/m/y Hi');
 
             foreach($formats as $format) {
                 $newDate = DateTime::createFromFormat($format, trim($date));
