@@ -2,14 +2,14 @@
 
 namespace Vmbcarabbacan\TeseractOcr;
 
-class ExtractEmirateId {
+class ExtractEmirateId extends ExtractedPolicy {
     
-    public function emiratesId($string) {
+    public function getEmiratesId($string) {
         return [
             'emirates_id' => $this->id($string),
             'name' => $this->name($string),
             'dob' => $this->dob($string),
-            'string' => $string
+            'string' => $this->cleanString($string)
         ];
     }
 

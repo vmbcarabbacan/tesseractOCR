@@ -44,7 +44,7 @@ use Vmbcarabbacan\TeseractOcr\TesseractOcr;
 $path = 'path/id/test.jpg'
 
 $tesseract = new TesseractOcr();
-return $tesseract->setImage($path)->emiratesId()->lang('Arabic')->generateFile();
+return $tesseract->setpath($path)->emiratesId()->lang('Arabic')->generateFile();
 
 #returns emirates id, name, dob and extracted string
 ```
@@ -57,7 +57,7 @@ use Vmbcarabbacan\TeseractOcr\TesseractOcr;
 $path = 'path/id/policy.pdf'
 
 $tesseract = new TesseractOcr();
-return $tesseract->setImage($image)->policy()->lang('eng')->generateFile();
+return $tesseract->setpath($image)->policy()->lang('eng')->generateFile();
 
 #returns policy number, policy start date, policy end date and extracted string
 ```

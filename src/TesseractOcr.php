@@ -2,25 +2,20 @@
 namespace Vmbcarabbacan\TeseractOcr;
 
 use thiagoalessio\TesseractOCR\TesseractOCR as TesOCR;
-use Vmbcarabbacan\TeseractOcr\ExtractEmirateId;
-use Vmbcarabbacan\TeseractOcr\ExtractedPolicy;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Imagick;
 
-class TesseractOcr {
+class TesseractOcr extends ExtractEmirateId {
     
     private $imagePath, $basePath, $baseName, $extension, $lang = null;
-    private $path, $is_emirate_id = true, $is_policy = false;
+    private $path, $isEmirateId = true, $isPolicy = false;
     private $gs = 'gs';
+    private $isImagePDF = false;
 
     public function __construct(String $path = null)
     {
         $this->path = $path;
-    }
-
-    public function test() {
-        return 'this is vmbcarabbacan tesseract';
     }
 
     public function generateFile() {
@@ -28,27 +23,41 @@ class TesseractOcr {
             $processImage = $this->processImage($this->imagePath);
             $data = $this->runImageOCR($processImage);
         } else if(strtolower($this->extension) == 'pdf') {
-            $data = $this->is_emirate_id 
+            $data = $this->isEmirateId 
             ? $this->pdfToPng($this->imagePath) 
             : $this->runPdfOCR($this->imagePath);
         } else {
             return 'Unable to read the file ' . $this->baseName . '-' .$this->extension;
         }
 
-        if($this->is_emirate_id) {
+        if($this->isEmirateId) {
             @unlink($this->basePath.'/process-'.$this->baseName);
-            $em = new ExtractEmirateId();
-            return $em->emiratesId($data);
+            return $this->getEmiratesId($data);
         }
 
-        if($this->is_policy) {
-            $po = new ExtractedPolicy();
-            return $po->policy($data);
+        if($this->isPolicy) {
+            return $this->getPolicy($data);
         }
             
     }
     
-    public function setImage($imagePath){
+    public function raw() {
+        if(in_array(strtolower($this->extension), ['jpg', 'jpeg', 'png'])) {
+            $processImage = $this->processImage($this->imagePath);
+            $data = $this->runImageOCR($processImage);
+        } else if(strtolower($this->extension) == 'pdf') {
+            $data = $this->isImagePDF 
+            ? $this->pdfToPng($this->imagePath) 
+            : $this->runPdfOCR($this->imagePath);
+        } else {
+            return 'Unable to read the file ' . $this->baseName . '-' .$this->extension;
+        }
+
+        $po = new ExtractedPolicy();
+        return $po->cleanString($data);
+    }
+    
+    public function setpath($imagePath){
         $this->imagePath = $imagePath;
         $this->extension = pathinfo($imagePath, PATHINFO_EXTENSION);
         $this->basePath = dirname($imagePath);
@@ -69,16 +78,22 @@ class TesseractOcr {
         return $this;
     }
 
-    public function emirateId() {
-        $this->is_emirate_id = true;
-        $this->is_policy = false;
+    public function emiratesId() {
+        $this->isEmirateId = true;
+        $this->isPolicy = false;
         
         return $this;
     }
 
+    public function pdfImage() {
+        $this->isImagePDF = true;
+
+        return $this;
+    }
+
     public function policy() {
-        $this->is_emirate_id = false;
-        $this->is_policy = true;
+        $this->isEmirateId = false;
+        $this->isPolicy = true;
 
         return $this;
     }
@@ -110,8 +125,9 @@ class TesseractOcr {
 
     private function pdfToPng($image) {
         try {
+            $outputFile = $this->basePath . 'pdtToPng/';
             // Use Ghostscript to decrypt PDF and convert to images
-            $process = new Process([$this->gs, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $this->basePath . 'page%d.png', $image]);
+            $process = new Process([$this->gs, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $outputFile . 'page%d.png', $image]);
             $process->run();
 
             // Check if Ghostscript command was successful
@@ -121,13 +137,15 @@ class TesseractOcr {
 
             // Iterate through generated images and extract text using Tesseract OCR
             $extractedText = '';
-            $imageFiles = glob($this->basePath . '*.png');
+            $imageFiles = glob($outputFile . '*.png');
             foreach ($imageFiles as $imageFile) {
                 $ocr = new TesOCR($imageFile);
                 if(!is_null($this->path)) $ocr->executable($this->path);
                 if(!is_null($this->lang)) $ocr->lang($this->lang);
                 $extractedText .= $ocr->run();
             }
+
+            $this->deleteFolderAndFiles($outputFile);
 
             // Output the extracted text
             return $extractedText;
@@ -165,5 +183,23 @@ class TesseractOcr {
         } catch (\Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    private function deleteFolderAndFiles($path) {
+        if (!is_dir($path)) {
+            return "$path must be a directory";
+        }
+        if (substr($path, strlen($path) - 1, 1) !== '/') {
+            $path .= '/';
+        }
+        $files = glob($path . '*', GLOB_MARK);
+        foreach ($files as $file) {
+            if (is_dir($file)) {
+                $this->deleteFolderAndFiles($file);
+            } else {
+                unlink($file);
+            }
+        }
+        rmdir($path);
     }
 }
