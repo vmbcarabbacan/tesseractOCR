@@ -4,6 +4,7 @@ namespace Vmbcarabbacan\TeseractOcr;
 use thiagoalessio\TesseractOCR\TesseractOCR as TesOCR;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Smalot\PdfParser\Parser;
 use Imagick;
 
 class TesseractOcr extends ExtractEmirateId {
@@ -116,10 +117,12 @@ class TesseractOcr extends ExtractEmirateId {
     private function runPdfOCR($path) {
         try {
 
-            $output = [];
-            exec("pdftotext " . escapeshellarg($path) . " -", $output);
-            return implode("\n", $output);
+            $parser = new Parser();
 
+            $pdf = $parser->parseFile($path);
+            $text = $pdf->getText();
+
+            return $text;
         } catch (\Exception $e) {
             return $e->getMessage();
         }
