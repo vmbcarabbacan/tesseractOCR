@@ -5,12 +5,13 @@ use thiagoalessio\TesseractOCR\TesseractOCR as TesOCR;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Smalot\PdfParser\Parser;
+use Vmbcarabbacan\TeseractOcr\ExtractMulkiya;
 use Imagick;
 
 class TesseractOcr extends ExtractEmirateId {
     
     private $imagePath, $basePath, $baseName, $extension, $lang = null;
-    private $path, $isEmirateId = true, $isPolicy = false;
+    private $path, $isEmirateId = true, $isPolicy = false, $isMulkiya = false;
     private $gs = 'gs';
     private $isImagePDF = false;
 
@@ -24,9 +25,11 @@ class TesseractOcr extends ExtractEmirateId {
             $processImage = $this->processImage($this->imagePath);
             $data = $this->runImageOCR($processImage);
         } else if(strtolower($this->extension) == 'pdf') {
-            $data = $this->isEmirateId 
-            ? $this->pdfToPng($this->imagePath) 
-            : $this->runPdfOCR($this->imagePath);
+            $data = '';
+            if($this->isEmirateId) $data = $this->pdfToPng($this->imagePath);
+            else if($this->isPolicy) $data = $this->runPdfOCR($this->imagePath);
+            else if($this->isMulkiya) $data = $this->pdfToPngProcess($this->imagePath);
+            
         } else {
             return 'Unable to read the file ' . $this->baseName . '-' .$this->extension;
         }
@@ -40,6 +43,11 @@ class TesseractOcr extends ExtractEmirateId {
             if(!$data) 
                 $data = $this->pdfToPng($this->imagePath);
             return $this->getPolicy($data);
+        }
+
+        if($this->isMulkiya) {
+            $mulkiya = new ExtractMulkiya();
+            return $mulkiya->getMulkiya($data);
         }
             
     }
@@ -84,6 +92,7 @@ class TesseractOcr extends ExtractEmirateId {
     public function emiratesId() {
         $this->isEmirateId = true;
         $this->isPolicy = false;
+        $this->isMulkiya = false;
         
         return $this;
     }
@@ -97,6 +106,15 @@ class TesseractOcr extends ExtractEmirateId {
     public function policy() {
         $this->isEmirateId = false;
         $this->isPolicy = true;
+        $this->isMulkiya = false;
+
+        return $this;
+    }
+
+    public function mulkiya() {
+        $this->isEmirateId = false;
+        $this->isPolicy = false;
+        $this->isMulkiya = true;
 
         return $this;
     }
@@ -160,7 +178,42 @@ class TesseractOcr extends ExtractEmirateId {
         }
     }
 
-    private function processImage($imagePath) {
+    private function pdfToPngProcess($image) {
+        try {
+            $outputFile = $this->basePath . '/pdtToPng/';
+            $this->createFolder($outputFile);
+            // Use Ghostscript to decrypt PDF and convert to images
+            $process = new Process([$this->gs, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-sOutputFile=' . $outputFile . 'page%d.png', $image]);
+            $process->run();
+
+            // Check if Ghostscript command was successful
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
+            }
+
+            $imageFiles = glob($outputFile . '*.png');
+            
+            $extractedText = '';
+            foreach ($imageFiles as $imageFile) {
+                $processImage = $this->processImage($imageFile, false);
+                $extractedText .= $this->runImageOCR($processImage);
+
+                $path = dirname($processImage);
+                $name = basename($processImage);
+                @unlink($path.'/process-'.$name);
+
+            }
+            
+            $this->deleteFolderAndFiles($outputFile);
+
+            // Output the extracted text
+            return $extractedText;
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    private function processImage($imagePath, $isProcess = true) {
         try {
             $image = new Imagick($imagePath);
 
@@ -180,7 +233,15 @@ class TesseractOcr extends ExtractEmirateId {
             $image->deskewImage(40); // Adjust threshold angle as needed
 
             // Save or output the processed image
-            $outputImagePath = $this->basePath.'/process-'.$this->baseName;
+            $path = $this->basePath;
+            $name = $this->baseName;
+
+            if(!$isProcess) {
+                $path = dirname($imagePath);
+                $name = basename($imagePath);
+            }
+
+            $outputImagePath = $path.'/process-'.$name;
             $image->writeImage($outputImagePath);
 
             $image->destroy();
