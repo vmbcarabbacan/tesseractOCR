@@ -21,7 +21,7 @@
         "ext-imagick": "*",
         "smalot/pdfparser": "*",
         "spatie/pdf-to-image": "^2.3",
-        "symfony/process": "^5.4.*",
+        "symfony/process": "*",
         "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "config": {
