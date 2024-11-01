@@ -9,6 +9,7 @@ class ExtractEmirateId extends ExtractedPolicy {
             'emirates_id' => $this->id($string),
             'name' => $this->name($string),
             'dob' => $this->dob($string),
+            'expiry_date' => $this->expiry($string),
             'string' => $this->cleanString($string)
         ];
     }
@@ -28,6 +29,18 @@ class ExtractEmirateId extends ExtractedPolicy {
     private function dob($string) {
         $pattern = "/\b\d{2}\/\d{2}\/\d{4}\b/";
         return $this->matches($string, $pattern);
+    }
+
+    private function expiry($string) {
+        $pattern = "/\b\d{2}\/\d{2}\/\d{4}\b/";
+        preg_match_all($pattern, $string, $matches);
+        if($matches) {
+            $matches = $matches[0];
+            $count = count($matches);
+            return $matches[$count - 1];
+        }
+
+        return null;
     }
 
     private function matches($string, $pattern, $index = 0) {
